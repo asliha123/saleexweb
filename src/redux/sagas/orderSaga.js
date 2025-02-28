@@ -1,0 +1,58 @@
+import { all,call, put, takeLatest } from "redux-saga/effects";
+import {
+  fetchOrdersRequest,
+  fetchOrdersSuccess,
+  fetchOrdersFailure,
+} from "../slices/orderSlice";
+
+
+function fetchOrdersAPI() {
+  const url = "";
+  const token = ""; 
+
+  return fetch(url, {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${token}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      userId: 0,
+      pageNumber: 1,
+      pageSize: 11,
+      periodId: 0,
+      days: 0,
+      start: "2024-11-10T04:34:14.795Z",
+      end: "2024-12-27T22:34:14.795Z",
+      isCredit: 0,
+      states: [],
+      clients: [],
+      tags: [],
+    }),
+  }).then((response) => {
+    if (!response.ok) {
+      throw new Error(`Error: ${response.status} - ${response.statusText}`);
+    }
+    return response.json();
+  });
+}
+
+// Saga Worker
+function* fetchOrders() {
+  try {
+    const data = yield call(fetchOrdersAPI);
+    yield put(fetchOrdersSuccess(data.response.orders));
+  } catch (error) {
+    yield put(fetchOrdersFailure(error.message));
+  }
+}
+
+// Saga Watcher
+export function* watchFetchOrders() {
+  yield takeLatest(fetchOrdersRequest.type, fetchOrders);
+}
+export default function* orderSaga() {
+  yield all([
+    watchFetchOrders(),
+  ]);
+}

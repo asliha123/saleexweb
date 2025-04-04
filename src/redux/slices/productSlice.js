@@ -1,18 +1,23 @@
+
 import { createSlice } from "@reduxjs/toolkit";
 
 const initialState = {
   products: [],
   loading: false,
   error: null,
+  appliedFilters: [],
 };
 
 const productSlice = createSlice({
   name: "products",
   initialState,
   reducers: {
-    fetchProductsRequest: (state) => {
+    fetchProductsRequest: (state, action) => {
       state.loading = true;
       state.error = null;
+      state.appliedFilters = action.payload;
+
+      console.log("state.appliedFilters", state.appliedFilters);
     },
     fetchProductsSuccess: (state, action) => {
       state.loading = false;
@@ -24,8 +29,6 @@ const productSlice = createSlice({
     },
   },
 });
-
-
 
 export const {
   fetchProductsRequest,

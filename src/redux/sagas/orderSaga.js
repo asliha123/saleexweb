@@ -1,47 +1,114 @@
-import { all,call, put, takeLatest } from "redux-saga/effects";
+// import { all,call, put, takeLatest } from "redux-saga/effects";
+// import {
+//   fetchOrdersRequest,
+//   fetchOrdersSuccess,
+//   fetchOrdersFailure,
+// } from "../slices/orderSlice";
+
+
+// function fetchOrdersAPI() {
+//   const url = "";
+//   const token = ""; 
+
+//   return fetch(url, {
+//     method: "POST",
+//     headers: {
+//       Authorization: `Bearer ${token}`,
+//       "Content-Type": "application/json",
+//     },
+//     body: JSON.stringify({
+//       userId: 0,
+//       pageNumber: 1,
+//       pageSize: 11,
+//       periodId: 0,
+//       days: 0,
+//       start: "2024-11-10T04:34:14.795Z",
+//       end: "2024-12-27T22:34:14.795Z",
+//       isCredit: 0,
+//       states: [],
+//       clients: [],
+//       tags: [],
+//     }),
+//   }).then((response) => {
+//     if (!response.ok) {
+//       throw new Error(`Error: ${response.status} - ${response.statusText}`);
+//     }
+//     return response.json();
+//   });
+// }
+
+// // Saga Worker
+// function* fetchOrders() {
+//   try {
+//     const data = yield call(fetchOrdersAPI);
+//     yield put(fetchOrdersSuccess(data.response.orders));
+//   } catch (error) {
+//     yield put(fetchOrdersFailure(error.message));
+//   }
+// }
+
+// // Saga Watcher
+// export function* watchFetchOrders() {
+//   yield takeLatest(fetchOrdersRequest.type, fetchOrders);
+// }
+// export default function* orderSaga() {
+//   yield all([
+//     watchFetchOrders(),
+//   ]);
+// }
+import { all, call, put, takeLatest, select } from "redux-saga/effects";
 import {
   fetchOrdersRequest,
   fetchOrdersSuccess,
   fetchOrdersFailure,
 } from "../slices/orderSlice";
 
+// Selector to get token from Redux store
+const selectToken = (state) => state.auth.token;
 
-function fetchOrdersAPI() {
-  const url = "";
-  const token = ""; 
+// API Call Function
+function* fetchOrdersAPI() {
+  try {
+    const token = yield select(selectToken); 
+    const url = ""; 
 
-  return fetch(url, {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${token}`,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      userId: 0,
-      pageNumber: 1,
-      pageSize: 11,
-      periodId: 0,
-      days: 0,
-      start: "2024-11-10T04:34:14.795Z",
-      end: "2024-12-27T22:34:14.795Z",
-      isCredit: 0,
-      states: [],
-      clients: [],
-      tags: [],
-    }),
-  }).then((response) => {
+    const response = yield call(fetch, url, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        userId: 0,
+        pageNumber: 1,
+        pageSize: 11,
+        periodId: 0,
+        days: 0,
+        start: "2024-11-10T04:34:14.795Z",
+        end: "2024-12-27T22:34:14.795Z",
+        isCredit: 0,
+        states: [],
+        clients: [],
+        tags: [],
+      }),
+    });
+
     if (!response.ok) {
       throw new Error(`Error: ${response.status} - ${response.statusText}`);
     }
-    return response.json();
-  });
+
+    const data = yield response.json();
+    return data.response.orders;
+  } catch (error) {
+    throw error;
+  }
 }
 
 // Saga Worker
 function* fetchOrders() {
   try {
-    const data = yield call(fetchOrdersAPI);
-    yield put(fetchOrdersSuccess(data.response.orders));
+    const orders = yield call(fetchOrdersAPI);
+    yield put(fetchOrdersSuccess(orders));
   } catch (error) {
     yield put(fetchOrdersFailure(error.message));
   }
@@ -51,8 +118,8 @@ function* fetchOrders() {
 export function* watchFetchOrders() {
   yield takeLatest(fetchOrdersRequest.type, fetchOrders);
 }
+
+// Root Order Saga
 export default function* orderSaga() {
-  yield all([
-    watchFetchOrders(),
-  ]);
+  yield all([watchFetchOrders()]);
 }

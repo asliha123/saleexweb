@@ -2,52 +2,62 @@
 import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { fetchOrdersRequest } from "./redux/slices/orderSlice";
-import { setToken, clearToken } from "./redux/slices/authSlice"; 
 import Header from "./Components/Header";
 import VerticalTabs from "./Components/VerticalTabs";
 import CatalogueLayout from "./Components/CatalogueLayout";
 import Login from "./Components/Login";
-
+import AddProduct from "./Components/AddProduct";
+import { Routes, Route, useNavigate } from "react-router-dom";
 const HomePage = () => {
   const dispatch = useDispatch();
-  const token = useSelector((state) => state.auth.token); 
   const { orders, loading, error } = useSelector((state) => state.orders);
   const [activeTab, setActiveTab] = useState("Home");
+  const [isLoggedIn, setIsLoggedIn] = useState(!!localStorage.getItem("token"));
 
   useEffect(() => {
-    if (token) {
-      dispatch(fetchOrdersRequest()); 
+    if (isLoggedIn) {
+      dispatch(fetchOrdersRequest());
     }
-  }, [dispatch, token]);
+  }, [dispatch, isLoggedIn]);
 
   const handleLoginSuccess = (userData, token) => {
-    dispatch(setToken(token)); 
+    localStorage.setItem("user", JSON.stringify(userData));
+    localStorage.setItem("token", token);
+    setIsLoggedIn(true);
   };
 
   const handleLogout = () => {
-    dispatch(clearToken()); 
+    localStorage.removeItem("user");
+    localStorage.removeItem("token");
+    setIsLoggedIn(false);
   };
 
   const renderContent = () => {
     switch (activeTab) {
       case "Home":
-        return;
+        return null;
       case "Deals":
-        return;
+        return null;
       case "Orders":
-        return;
+        return null;
       case "Catalogue":
-        return <CatalogueLayout />;
+        return (
+          <CatalogueLayout
+            onAddProduct={() => setActiveTab("AddProduct")} 
+          />
+        );
+      case "AddProduct":
+        return <AddProduct onBack={() => setActiveTab("Catalogue")} />; 
       case "Reports":
-        return;
+        return null;
       case "Settings":
-        return;
+        return null;
       default:
-        return;
+        return null;
     }
   };
 
-  if (!token) {
+  if (!isLoggedIn) {
     return <Login onLoginSuccess={handleLoginSuccess} />;
   }
 
@@ -72,7 +82,12 @@ const HomePage = () => {
         >
           Logout
         </button>
-        {renderContent()}
+        <Routes>
+          <Route path="/" element={renderContent()} /> {/* Default home route */}
+          <Route path="/catalogue" element={<CatalogueLayout />} />
+          <Route path="/add-product" element={<AddProduct />} />
+        </Routes>  
+       
       </div>
     </div>
   );

@@ -16,7 +16,7 @@ const Filters = () => {
       const token =
         "";
       const response = await fetch(
-        "",
+        "https://laptop-9efu9o2s/catalogueserver/Catalogue/CatalogueFilters",
         {
           headers: { Authorization: `Bearer ${token}` },
         }
